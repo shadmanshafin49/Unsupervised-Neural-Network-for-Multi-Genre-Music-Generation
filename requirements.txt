@@ -1,0 +1,7 @@
+torch
+numpy
+pretty_midi
+music21
+matplotlib
+scikit-learn
+tqdm
