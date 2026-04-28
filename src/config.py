@@ -41,8 +41,8 @@ LR_VAE               = 1e-3
 LR_TRANSFORMER       = 5e-4
 LR_RLHF              = 1e-4
 EPOCHS_AE            = 50
-EPOCHS_VAE           = 80
-EPOCHS_TRANSFORMER   = 100
+EPOCHS_VAE           = 50
+EPOCHS_TRANSFORMER   = 80
 RL_STEPS             = 200
 BETA_KL              = 0.001
 

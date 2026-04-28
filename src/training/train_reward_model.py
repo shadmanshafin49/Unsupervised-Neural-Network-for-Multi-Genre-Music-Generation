@@ -30,7 +30,7 @@ model     = RewardModel().to(device)
 optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
 criterion = nn.MSELoss()
 
-for epoch in range(500):
+for epoch in range(75):
     model.train()
     optimizer.zero_grad()
     preds = model(X_tensor.to(device)).squeeze()
