@@ -83,6 +83,20 @@ os.makedirs(MODELS_DIR, exist_ok=True)
 torch.save(model.state_dict(), os.path.join(MODELS_DIR, 'transformer.pth'))
 print("Model saved to outputs/models/transformer.pth")
 
+import json
+metrics_path = os.path.join(OUTPUTS_DIR, 'training_metrics.json')
+metrics = {}
+if os.path.exists(metrics_path):
+    with open(metrics_path) as f:
+        metrics = json.load(f)
+final_ppl = val_ppls[-1]
+final_bce = math.log(final_ppl)
+metrics['transformer_val_ppl'] = round(final_ppl, 6)
+metrics['transformer_val_bce'] = round(final_bce, 6)
+with open(metrics_path, 'w') as f:
+    json.dump(metrics, f, indent=2)
+print(f"Saved transformer_val_ppl={final_ppl:.4f} -> {metrics_path}")
+
 fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 5))
 ax1.plot(train_losses)
 ax1.set_title("Train Loss")

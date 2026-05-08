@@ -6,7 +6,7 @@ import torch
 import numpy as np
 import matplotlib.pyplot as plt
 from tqdm import trange
-from config import (OUTPUTS_DIR, PLOTS_DIR, LR_RLHF, RL_STEPS,
+from config import (OUTPUTS_DIR, MODELS_DIR, PLOTS_DIR, LR_RLHF, RL_STEPS,
                     WINDOW_SIZE, NUM_PITCHES, GENRES)
 from models.transformer import MusicTransformer
 from models.reward_model import RewardModel
@@ -20,12 +20,12 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 generator = MusicTransformer().to(device)
 generator.load_state_dict(
-    torch.load(os.path.join(OUTPUTS_DIR, 'transformer.pth'), map_location=device))
+    torch.load(os.path.join(MODELS_DIR, 'transformer.pth'), map_location=device))
 generator.train()
 
 reward_model = RewardModel().to(device)
 reward_model.load_state_dict(
-    torch.load(os.path.join(OUTPUTS_DIR, 'reward_model.pth'), map_location=device))
+    torch.load(os.path.join(MODELS_DIR, 'reward_model.pth'), map_location=device))
 reward_model.eval()
 
 optimizer      = torch.optim.Adam(generator.parameters(), lr=LR_RLHF)

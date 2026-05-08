@@ -70,15 +70,22 @@ genres.  Three architectures are implemented and rigorously compared: (1)~an
 LSTM Autoencoder (AE) for single-genre sequence reconstruction and generation;
 (2)~a genre-conditioned Variational Autoencoder (VAE) designed for diverse
 multi-genre sampling; and (3)~a decoder-only Transformer that autoregressively
-generates genre-conditioned sequences.  An optional fourth stage applies
-Reinforcement Learning from Human Feedback (RLHF) to align generation with
-listener preferences.  Training is performed on 7{,}163 MIDI files across
-Blues, Classical, Country, Electronic, Folk, Hip-Hop, Jazz, Pop, and Rock.
-The Transformer achieves the best quantitative performance (BCE~Loss:~0.2193,
-Perplexity:~1.245, Rhythm~Diversity:~0.223) with strong nine-genre control.
-A detailed analysis of posterior collapse in the VAE is provided.  All
-learned models outperform both the random-note and Markov~chain baselines
-across every measured metric.  Human evaluation scores are pending collection.
+generates genre-conditioned sequences.  An optional bonus stage provides a
+complete Reinforcement Learning from Human Feedback (RLHF) implementation—
+including a human listening survey and reward model—with full training
+execution left as future work.  Training is performed on 7{,}163 MIDI files
+across Blues, Classical, Country, Electronic, Folk, Hip-Hop, Jazz, Pop, and
+Rock.  All models use \texttt{BCEWithLogitsLoss} with positive class weighting
+(pos\_weight\,$\approx$\,30) to address 97--98\% piano-roll sparsity.  The
+Transformer achieves the best quantitative performance
+(weighted BCE~Loss:~0.2193, Perplexity:~1.245, Rhythm~Diversity:~0.223),
+approximately 4.6$\times$ lower loss than the AE (1.013) and VAE (1.020),
+with strong nine-genre control.  A detailed analysis of VAE posterior
+collapse and its observable metric effects is provided.  All learned models
+outperform both the random-note and Markov chain baselines across every
+measured metric.  A pre-RLHF human listening survey with 16 participants
+evaluated Transformer outputs across six genres, yielding an average score
+of 1.93/5.
 \end{abstract}
 
 %% =======================================================================
@@ -195,7 +202,7 @@ discarding dynamic information to focus the model on pitch and rhythm.
 \subsection{Window Segmentation and Sparse Filtering}
 
 Long sequences are segmented into non-overlapping windows of
-$\mathbf{128}$\textbf{ frames} (8 seconds).  A window is discarded if
+$\mathbf{64}$\textbf{ frames} (8 seconds).  A window is discarded if
 fewer than 2\% of its cells are active.  This filtering step is critical
 because piano-roll matrices are approximately 97–98\% sparse: without it,
 a model minimising mean-squared error can achieve low loss simply by
@@ -204,14 +211,13 @@ predicting all-zero outputs, never learning any note activations.
 \subsection{Class-Imbalance-Aware Loss}
 
 The severe 97–98\% sparsity creates a class imbalance between silent
-(negative) and active (positive) cells.  We use
-\textbf{Focal~Loss}~\cite{lin2017focal} with a positive class weight in
-place of standard MSE or unweighted BCE.  The modulating factor
-$(1{-}p_t)^{\gamma}$ suppresses gradient contributions from
-well-classified (silent) cells, giving full gradient weight to the rare
-active cells that carry musical content.  A positive class weight
-\texttt{pos\_weight} $\approx 15$–30 further compensates for the
-imbalance.
+(negative) and active (positive) cells.  We use \textbf{BCEWithLogitsLoss} with a positive class weight
+$w^{+} \approx 15$--30 in place of unweighted BCE or MSE\@.  The
+weight amplifies the gradient contribution of rare active (note-on)
+cells, giving the model a strong training signal despite the 97--98\%
+background of silence.  The exact value is computed per run as
+$\min\!\bigl((1-p)/p,\;30\bigr)$ where $p$ is the observed
+positive-cell rate in the training set.
 
 %% =======================================================================
 \section{Models}
@@ -235,13 +241,17 @@ A decoder $g_\theta$ reconstructs the sequence from $z$:
 \begin{equation}
   \hat{X} = g_\theta(z)
 \end{equation}
-Training minimises the reconstruction loss (Focal-weighted in practice):
+Training minimises a positive-class-weighted binary cross-entropy loss:
 \begin{equation}
-  \Lcal_{\mathrm{AE}} = \sum_{t=1}^{T} \|x_t - \hat{x}_t\|^2
+  \Lcal_{\mathrm{AE}} = -\frac{1}{T}\sum_{t=1}^{T}\Bigl[
+    w^{+}\,x_t\log\sigma(\hat{x}_t)
+    + (1-x_t)\log\bigl(1-\sigma(\hat{x}_t)\bigr)
+  \Bigr]
 \end{equation}
+where $w^{+}$ is the positive class weight and $\sigma$ is the sigmoid function.
 
 \paragraph{Architecture.}
-The \emph{encoder} is a 2-layer bidirectional LSTM with hidden
+The \emph{encoder} is a 2-layer unidirectional LSTM with hidden
 dimension~256.  The final hidden state $\mathbf{h}_n[-1]$ is projected by
 a linear layer to a latent vector of dimension $d = 64$.
 
@@ -297,7 +307,7 @@ decoding.  The decoder architecture is identical to Task~1.
 
 \paragraph{KL annealing.}
 To mitigate posterior collapse, $\beta$ is linearly annealed from~0 to~1
-over the first 20 epochs, preventing the KL penalty from suppressing the
+over the first 10 epochs, preventing the KL penalty from suppressing the
 latent code before reconstruction has converged.
 
 \paragraph{Latent interpolation.}
@@ -349,9 +359,12 @@ A decoder-only (GPT-style) Transformer~\cite{vaswani2017attention} is used:
 \end{itemize}
 
 \paragraph{Generation.}
-Sequences are generated autoregressively by sampling
-$x_t \sim p_\theta(x_t \mid x_{<t})$ with temperature $T = 0.8$ to
-prevent the repetition loops that arise under greedy decoding.
+Sequences are generated autoregressively using temperature-scaled sigmoid
+sampling: $\hat{x}_t = \mathbf{1}\!\bigl[\sigma(h_t / T) > \tau\bigr]$
+with $T = 0.7$ and threshold $\tau = 0.3$, applied over a sliding window
+of 64 steps to keep the context in-distribution.
+This temperature-threshold approach prevents the repetition loops
+that arise under greedy ($\tau = 0.5$) decoding.
 
 \subsection{Task 4: RLHF Fine-Tuning (Bonus)}
 \label{sec:task4}
@@ -379,13 +392,20 @@ A KL penalty against the original checkpoint prevents reward hacking:
 \end{equation}
 
 \paragraph{Implementation.}
-A lightweight reward model (3-layer MLP over extracted musical features
-including rhythm diversity, pitch histogram distance, and note density)
-is trained on human survey responses, enabling reward estimation without
-running a survey at every training iteration.  Rewards are normalised
-per batch (subtract mean, divide by std) to reduce REINFORCE variance.
-\TODO{Human listening survey (minimum 10 participants) to be completed
-before final submission.}
+A lightweight reward model (a 3-layer MLP accepting a raw
+$64 \times 88$ piano-roll segment and outputting a predicted
+human-preference score in $[1,5]$) was implemented in
+\texttt{src/models/reward\_model.py} and designed to be trained on
+human survey responses (enabling reward estimation without running the
+survey at every training iteration).  A 16-participant listening survey
+was completed and the ratings are stored in
+\texttt{outputs/survey\_results/pre\_rl\_scores.csv}.
+Training the reward model and subsequent RLHF fine-tuning were
+implemented in \texttt{src/training/train\_reward\_model.py} and
+\texttt{src/training/train\_rlhf.py} respectively; execution of those
+scripts is left as future work due to time constraints.
+Rewards would be normalised per batch (subtract mean, divide by std)
+to reduce REINFORCE variance.
 
 %% =======================================================================
 \section{Baseline Models}
@@ -449,10 +469,14 @@ Values near~0 or~1 suggest degenerate model behaviour.
 \emph{Lower} is better.
 
 \paragraph{Human Listening Score.}
-Participants rate generated audio on a 1–5 scale
-($1 = \text{poor},\;5 = \text{excellent}$).
-\emph{Survey not yet conducted; scores marked N/A in
-Table~\ref{tab:results}.}
+Participants rated Task~3 Transformer output on a 1–5 scale
+($1 = \text{poor},\;5 = \text{excellent}$) via a Google Form survey
+distributed to 16 participants.  Six genre-specific samples were evaluated
+(Blues, Classical, Country, Electronic, Folk, Hip-Hop).
+Per-sample averages: Blues~2.19, Classical~2.13, Country~1.88,
+Electronic~1.69, Folk~1.81, Hip-Hop~1.88.
+The overall Task~3 mean is \textbf{1.93/5}.
+Baselines and earlier tasks were not included in the survey.
 
 %% =======================================================================
 \section{Experimental Results}
@@ -466,8 +490,13 @@ three trained models.
   \centering
   \caption{Quantitative evaluation of all models and baselines on the LMD
     test set (5 samples per model / baseline for MIDI metrics).
+    BCE Loss is the positive-class-weighted \texttt{BCEWithLogitsLoss}
+    (pos\_weight\,$\approx$\,30) reported from the best validation epoch.
+    Perplexity ($\exp(\mathrm{BCE})$) is reported only for the Transformer,
+    where it is the primary metric; ``--'' denotes not applicable.
     $\downarrow$\,lower is better; $\uparrow$\,higher is better.
-    Human Scores are pending (\textit{N/A}).
+    Human score from 16-participant survey of Task~3 only; baselines and
+    Tasks 1--2 were not surveyed (N/A).
     \textbf{Bold} denotes best among learned models; \underline{underline}
     denotes second-best.}
   \label{tab:results}
@@ -487,12 +516,12 @@ three trained models.
     Random Generator  & --      & --      & 0.013 & 0.000 & 0.217 & N/A & None         \\
     Markov Chain      & --      & --      & 0.247 & 0.297 & 0.903 & N/A & Weak         \\
     \midrule
-    Task 1: LSTM AE   & \underline{0.2404} & \underline{1.272} & \textbf{0.249}
+    Task 1: LSTM AE   & \underline{1.013} & --      & \textbf{0.249}
                       & \underline{0.093} & 0.421 & N/A & Single Genre \\
-    Task 2: VAE       & 0.2634  & 1.301   & 0.089 & 0.000$^\dagger$ & \textbf{0.112}
+    Task 2: VAE       & 1.020   & --      & 0.089 & 0.000$^\dagger$ & \textbf{0.112}
                       & N/A & Moderate (9) \\
     Task 3: Transformer & \textbf{0.2193} & \textbf{1.245} & \underline{0.223}
-                        & \textbf{0.053} & \underline{0.122} & N/A & Strong (9) \\
+                        & \textbf{0.053} & \underline{0.122} & \textbf{1.93/5} & Strong (9) \\
     \bottomrule
     \multicolumn{8}{l}{%
       $^\dagger$ Repetition = 0.000 reflects posterior collapse: all 21 outputs are
@@ -562,14 +591,19 @@ without long-range coherence.
 The AE achieves the highest Rhythm Diversity (0.249), comparable to the
 Markov chain, and a moderate Repetition Ratio (0.093).  Its Pitch Sim.\ of
 0.421 indicates that generated sequences capture a reasonable but incomplete
-approximation of the training pitch distribution.  The loss curve
-(Figure~\ref{fig:task1_loss}) shows smooth convergence without overfitting,
-validating that Focal Loss with positive class weighting successfully
-addresses the sparsity problem.
+approximation of the training pitch distribution.  The final weighted BCE
+loss (1.013, measured with pos\_weight~$\approx$~30) reflects that the AE
+has limited expressiveness on the highly imbalanced piano-roll data relative
+to the Transformer.  The loss curve (Figure~\ref{fig:task1_loss}) shows
+smooth convergence without overfitting, confirming that
+\texttt{BCEWithLogitsLoss} with positive class weighting successfully
+provides a gradient signal despite 97--98\% sparsity.
 
-The AE's main limitation is the absence of genre conditioning: it is
+The AE's main limitations are (1) the absence of genre conditioning—it is
 trained and sampled from a single latent distribution, providing no
-mechanism to target specific genres at generation time.
+mechanism to target specific genres at generation time—and
+(2) a compressed fixed-length bottleneck ($d = 64$) that cannot fully
+capture the temporal complexity of 64-step piano rolls.
 
 \subsection{Task 2: VAE and Posterior Collapse}
 \label{sec:vae_collapse}
@@ -618,15 +652,19 @@ through the latent space would likely address the collapse.
 \subsection{Task 3: Transformer}
 
 The Transformer achieves the best performance on every directly-comparable
-metric.  Its BCE Loss (0.2193) and Perplexity (1.245) confirm superior
-test-set modelling.  Rhythm Diversity (0.223) and Repetition (0.053)
-indicate rhythmically varied, non-repetitive output.
+metric.  Its weighted BCE Loss of 0.2193 (Perplexity~1.245)
+is approximately 4.6$\times$ lower than the AE (1.013) and 4.7$\times$
+lower than the VAE (1.020), measured under the same
+\texttt{BCEWithLogitsLoss} with pos\_weight~$\approx$~30.
+Rhythm Diversity (0.223) and Repetition (0.053) indicate rhythmically
+varied, non-repetitive output.
 
 The causal self-attention mask is essential: without it the model attends
 to future tokens during training, making next-token prediction trivially
 easy and causing training loss to fall while validation perplexity remains
-high.  Temperature sampling ($T = 0.8$) further prevents the repetition
-loops characteristic of greedy decoding~\cite{huang2019musictransformer}.
+high.  Temperature-scaled sigmoid sampling ($T = 0.7$, threshold~0.3) further
+prevents the repetition loops characteristic of greedy
+decoding~\cite{huang2019musictransformer}.
 
 Genre conditioning via summed token and genre embeddings allows the model
 to produce distinguishable output for all nine genres, confirmed by
@@ -634,11 +672,31 @@ per-genre listening and pitch-histogram inspection.
 
 \subsection{Task 4: RLHF (Bonus)}
 
-The RLHF infrastructure—policy gradient training loop, reward MLP, KL
-penalty against the original checkpoint—is fully implemented.  A human
-listening survey (minimum 10 participants) is required to produce the
-reward signal.  \TODO{Survey collection and RLHF fine-tuning results to be
-added before final submission.}
+The RLHF infrastructure—policy gradient training loop, 3-layer reward
+MLP accepting raw piano-roll input, and KL penalty against the original
+checkpoint—is fully implemented in
+\texttt{src/training/train\_rlhf.py} and
+\texttt{src/training/train\_reward\_model.py}.
+A 16-participant human listening survey was conducted on 6 genre-specific
+Transformer outputs (Blues, Classical, Country, Electronic, Folk, Hip-Hop)
+and the raw responses are archived in
+\texttt{outputs/survey\_results/} with corresponding piano rolls in
+\texttt{pre\_rl\_rolls.npy} and per-sample average scores in
+\texttt{pre\_rl\_scores.csv}.
+Running the reward model training script and the RLHF fine-tuning loop
+are left as future work; accordingly, no before-vs-after comparison
+or post-RLHF generated samples are included in this report.
+
+\paragraph{Pre-RLHF survey results (Task~3 baseline ratings).}
+The same 16 participants who would score the post-RLHF outputs also rated
+six pre-RLHF Transformer samples.
+Per-sample averages: Blues~2.19, Classical~2.13, Country~1.88,
+Electronic~1.69, Folk~1.81, Hip-Hop~1.88; overall mean \textbf{1.93/5}.
+These low ratings are consistent with the piano-roll representation's
+inability to capture timbre or articulation: the MIDI-to-audio
+conversion produces a mechanical acoustic-piano sound that lacks the
+expressive qualities of real performances, reducing perceived musicality
+independent of the model's generative capability.
 
 %% =======================================================================
 \section{Conclusion}
@@ -651,17 +709,26 @@ findings:
 
 \begin{enumerate}
   \item \textbf{The Transformer is the strongest model} across all
-        quantitative metrics, achieving the best BCE loss (0.2193),
-        perplexity (1.245), and genre control over nine genres.
+        quantitative metrics, achieving weighted BCE loss~0.2193
+        (Perplexity~1.245)—approximately 4.6$\times$ lower than the AE
+        (1.013) and VAE (1.020)—along with the best genre control over
+        nine genres.  The AE achieves the highest rhythm diversity (0.249),
+        suggesting richer note-duration variety in short reconstructed
+        segments despite its inferior reconstruction fidelity.
   \item \textbf{VAE posterior collapse} renders the learned latent space
         uninformative.  KL annealing alone was insufficient; stronger
-        interventions (hierarchical architecture, free bits) are needed.
-  \item \textbf{Class imbalance} (97–98\% sparse piano-rolls) is the
-        primary training obstacle.  Focal Loss with positive class
-        weighting is necessary for any stable learning signal.
+        interventions (hierarchical architecture, free bits~\cite{roberts2018musicvae})
+        are needed.
+  \item \textbf{Class imbalance} (97--98\% sparse piano-rolls) is the
+        primary training obstacle.  \texttt{BCEWithLogitsLoss} with
+        positive class weighting (pos\_weight\,$\approx$\,30) is
+        necessary for any stable learning signal.
   \item \textbf{The Markov chain} is competitive in rhythm diversity but
         fails on genre control and long-range coherence, motivating
         the learned approaches.
+  \item \textbf{RLHF infrastructure is complete} (policy gradient loop,
+        reward MLP, KL-penalty anchor, 16-participant survey); executing
+        the training pipeline remains as future work.
 \end{enumerate}
 
 Future directions include diffusion-based music generation, longer

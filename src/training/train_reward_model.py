@@ -6,7 +6,7 @@ import torch
 import torch.nn as nn
 import numpy as np
 import pandas as pd
-from config import OUTPUTS_DIR
+from config import OUTPUTS_DIR, MODELS_DIR
 from models.reward_model import RewardModel
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -37,8 +37,9 @@ for epoch in range(75):
     loss  = criterion(preds, y_tensor.to(device))
     loss.backward()
     optimizer.step()
-    if epoch % 100 == 0:
-        print(f"Epoch {epoch} | MSE Loss: {loss.item():.4f}")
+    if epoch % 10 == 0:
+        print(f"Epoch {epoch:3d} | MSE Loss: {loss.item():.4f}")
 
-torch.save(model.state_dict(), os.path.join(OUTPUTS_DIR, 'reward_model.pth'))
-print("Saved: outputs/reward_model.pth")
+os.makedirs(MODELS_DIR, exist_ok=True)
+torch.save(model.state_dict(), os.path.join(MODELS_DIR, 'reward_model.pth'))
+print("Saved: outputs/models/reward_model.pth")

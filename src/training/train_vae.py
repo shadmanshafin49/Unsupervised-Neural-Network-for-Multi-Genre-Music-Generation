@@ -88,6 +88,17 @@ os.makedirs(MODELS_DIR, exist_ok=True)
 torch.save(model.state_dict(), os.path.join(MODELS_DIR, 'vae.pth'))
 print("Model saved to outputs/models/vae.pth")
 
+import json
+metrics_path = os.path.join(OUTPUTS_DIR, 'training_metrics.json')
+metrics = {}
+if os.path.exists(metrics_path):
+    with open(metrics_path) as f:
+        metrics = json.load(f)
+metrics['vae_val_loss'] = round(min(test_losses), 6)
+with open(metrics_path, 'w') as f:
+    json.dump(metrics, f, indent=2)
+print(f"Saved vae_val_loss={metrics['vae_val_loss']:.4f} -> {metrics_path}")
+
 fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 5))
 ax1.plot(train_losses, label='Train Loss')
 ax1.plot(test_losses,  label='Val Loss')

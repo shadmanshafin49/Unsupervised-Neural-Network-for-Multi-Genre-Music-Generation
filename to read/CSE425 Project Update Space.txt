@@ -1,0 +1,18 @@
+﻿[Project Submission : Check List] @everyone
+* Group Info : Fillout this form if you still haven't (one submission / group) : https://forms.gle/Tx3SmtvWTHVHMtga8
+* Submission Form : ⁠announcements⁠
+* GitHub Repo :
+   * Public. If Private, share with me (my GitHub Handle : shoaibdipu)
+   * README file should have all information clearly. Introduce each file.
+   * Add comments in in your code. So, they are easily understandable.
+   * Upload MIDI files in Google Drive and share the link in README file and Report.
+   * Clearly mention each groupmate's contribution.
+* * Report :
+   * Sections : Abstract, Introduction, Methodology, Result Analysis, Conclusion
+   * Template : Check the main guideline and pick one of those templates.
+   * Upload PDF file in Drive and share the link (publicly accessible).
+* * Presentation/Demonstration video :
+   * Merge all groupmates' clips into one video, upload it to YouTube as an 'Unlisted' video, and share the link.
+   * No need to prepare slides, just go through codes and report to present your contribution.
+   * Presentation should be coherent (walk through to whole pipeline, EDA -> Preprocessing > Task 1 (Architecture, Result, Play generated MIDI files) > Task 2 (Architecture, Result, Play generated MIDI files) > Task 3 (Architecture, Result, Play generated MIDI files > Task 4 (Architecture, Result, Play generated MIDI files) > Baseline (Architecture, Result, Play generated MIDI files) > Overall Analysis / Issues you faced and how you solved them)
+*

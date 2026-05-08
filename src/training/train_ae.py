@@ -65,6 +65,17 @@ for epoch in range(1, EPOCHS_AE + 1):
 torch.save(model.state_dict(), os.path.join(MODELS_DIR, 'autoencoder.pth'))
 print("Model saved to outputs/models/autoencoder.pth")
 
+import json
+metrics_path = os.path.join(OUTPUTS_DIR, 'training_metrics.json')
+metrics = {}
+if os.path.exists(metrics_path):
+    with open(metrics_path) as f:
+        metrics = json.load(f)
+metrics['ae_val_loss'] = round(min(test_losses), 6)
+with open(metrics_path, 'w') as f:
+    json.dump(metrics, f, indent=2)
+print(f"Saved ae_val_loss={metrics['ae_val_loss']:.4f} -> {metrics_path}")
+
 plt.figure(figsize=(10, 5))
 plt.plot(train_losses, label='Train Loss', color='steelblue')
 plt.plot(test_losses,  label='Val Loss',   color='coral')
