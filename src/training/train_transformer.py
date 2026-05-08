@@ -9,7 +9,7 @@ import numpy as np
 import math
 import matplotlib.pyplot as plt
 from tqdm import tqdm
-from config import (SPLIT_DIR, OUTPUTS_DIR, PLOTS_DIR, BATCH_SIZE,
+from config import (SPLIT_DIR, OUTPUTS_DIR, MODELS_DIR, PLOTS_DIR, BATCH_SIZE,
                     LR_TRANSFORMER, EPOCHS_TRANSFORMER)
 from models.transformer import MusicTransformer
 
@@ -33,7 +33,11 @@ test_dl = DataLoader(
 model     = MusicTransformer().to(device)
 optimizer = torch.optim.Adam(model.parameters(), lr=LR_TRANSFORMER)
 scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, EPOCHS_TRANSFORMER)
-criterion = nn.BCELoss()
+
+# BCEWithLogitsLoss: numerically stable, expects raw logits (model no longer applies sigmoid)
+pos_rate       = float(X_train.mean())
+pos_weight_val = min((1.0 - pos_rate) / pos_rate, 30.0)
+criterion      = nn.BCEWithLogitsLoss(pos_weight=torch.tensor([pos_weight_val]).to(device))
 
 
 def compute_perplexity(loss_val):
@@ -75,8 +79,9 @@ for epoch in range(1, EPOCHS_TRANSFORMER + 1):
     val_ppls.append(ppl)
     print(f"Epoch {epoch:3d} | Train Loss: {avg_train:.4f} | Val PPL: {ppl:.2f}")
 
-torch.save(model.state_dict(), os.path.join(OUTPUTS_DIR, 'transformer.pth'))
-print("Model saved to outputs/transformer.pth")
+os.makedirs(MODELS_DIR, exist_ok=True)
+torch.save(model.state_dict(), os.path.join(MODELS_DIR, 'transformer.pth'))
+print("Model saved to outputs/models/transformer.pth")
 
 fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 5))
 ax1.plot(train_losses)

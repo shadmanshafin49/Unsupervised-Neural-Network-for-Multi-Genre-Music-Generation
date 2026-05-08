@@ -1,0 +1,18 @@
+Model                         BCE Loss    Perplexity   Rhythm Div   Repetition   Pitch Sim   Human Score   Genre Control
+---------------------------------------------------------------------------------------------------------------------------------
+Random Generator              --          --           0.0127       0.0000       0.2174      N/A           None
+Markov Chain                  --          --           0.2467       0.2968       0.9034      N/A           Weak
+Task 1: LSTM AE               0.2404      1.2718       0.249        0.093        0.421       N/A           Single Genre
+Task 2: VAE                   0.2634      1.3013       0.089        0.000        0.112       N/A           Moderate (9 genres)
+Task 3: Transformer           0.2193      1.2452       0.223        0.053        0.122       N/A           Strong (9 genres)
+---------------------------------------------------------------------------------------------------------------------------------
+
+Notes:
+  BCE Loss    : avg BCEWithLogitsLoss on test set with pos_weight (retrained autoregressive models)
+  Perplexity  : exp(BCE Loss); Task 1=exp(0.2404)=1.272, Task 2=exp(0.2634)=1.301, Task 3=exp(0.2193)=1.245
+  Rhythm Div  : unique quantised durations / total notes  (higher = more variety)
+  Repetition  : 1 - (unique 4-step piano-roll patterns / total patterns)  (lower = less repetitive)
+  Pitch Sim   : distance vs training pitch-class histogram  (lower = closer to training distribution)
+  Human Score : NOT YET COLLECTED -- requires listening survey (1-5, >=10 participants)
+  Task 2 note : KL divergence collapsed to ~0 (posterior collapse); all 21 VAE outputs are near-identical
+  Task 2 note : Rhythm Div=0.089 and Repetition=0.000 reflect the collapsed decoder behaviour

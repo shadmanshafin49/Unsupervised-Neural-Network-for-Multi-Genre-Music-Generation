@@ -8,11 +8,11 @@ from torch.utils.data import DataLoader, TensorDataset
 import numpy as np
 import matplotlib.pyplot as plt
 from tqdm import tqdm
-from config import SPLIT_DIR, OUTPUTS_DIR, PLOTS_DIR, BATCH_SIZE, LR_AE, EPOCHS_AE
+from config import SPLIT_DIR, OUTPUTS_DIR, MODELS_DIR, PLOTS_DIR, BATCH_SIZE, LR_AE, EPOCHS_AE
 from models.autoencoder import Autoencoder
 
 os.makedirs(PLOTS_DIR, exist_ok=True)
-os.makedirs(OUTPUTS_DIR, exist_ok=True)
+os.makedirs(MODELS_DIR, exist_ok=True)
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(f"Using device: {device}")
@@ -27,7 +27,11 @@ test_dl  = DataLoader(TensorDataset(torch.FloatTensor(X_test)),
 
 model     = Autoencoder().to(device)
 optimizer = torch.optim.Adam(model.parameters(), lr=LR_AE)
-criterion = nn.MSELoss()
+
+# BCEWithLogitsLoss with pos_weight to handle piano-roll sparsity (~98% zeros)
+pos_rate       = float(X_train.mean())
+pos_weight_val = min((1.0 - pos_rate) / pos_rate, 30.0)
+criterion      = nn.BCEWithLogitsLoss(pos_weight=torch.tensor([pos_weight_val]).to(device))
 
 train_losses, test_losses = [], []
 
@@ -58,14 +62,14 @@ for epoch in range(1, EPOCHS_AE + 1):
     test_losses.append(avg_val)
     print(f"Epoch {epoch:3d} | Train Loss: {avg_train:.4f} | Val Loss: {avg_val:.4f}")
 
-torch.save(model.state_dict(), os.path.join(OUTPUTS_DIR, 'autoencoder.pth'))
-print("Model saved to outputs/autoencoder.pth")
+torch.save(model.state_dict(), os.path.join(MODELS_DIR, 'autoencoder.pth'))
+print("Model saved to outputs/models/autoencoder.pth")
 
 plt.figure(figsize=(10, 5))
 plt.plot(train_losses, label='Train Loss', color='steelblue')
 plt.plot(test_losses,  label='Val Loss',   color='coral')
 plt.xlabel("Epoch")
-plt.ylabel("MSE Loss")
+plt.ylabel("BCE Loss")
 plt.title("Task 1 - Autoencoder Reconstruction Loss")
 plt.legend()
 plt.tight_layout()

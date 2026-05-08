@@ -5,6 +5,7 @@ DATA_DIR     = os.path.join(BASE_DIR, "data")
 RAW_MIDI_DIR = os.path.join(DATA_DIR, "raw_midi")
 SPLIT_DIR    = os.path.join(DATA_DIR, "train_test_split")
 OUTPUTS_DIR  = os.path.join(BASE_DIR, "outputs")
+MODELS_DIR   = os.path.join(OUTPUTS_DIR, "models")
 PLOTS_DIR    = os.path.join(OUTPUTS_DIR, "plots")
 MIDI_OUT_DIR = os.path.join(OUTPUTS_DIR, "generated_midis")
 
@@ -46,5 +47,5 @@ EPOCHS_TRANSFORMER   = 80
 RL_STEPS             = 200
 BETA_KL              = 0.001
 
-GENERATION_THRESHOLD = 0.5
+GENERATION_THRESHOLD = 0.3  # below 0.5 to recover note activations on imbalanced data
 TEMPERATURE          = 1.0

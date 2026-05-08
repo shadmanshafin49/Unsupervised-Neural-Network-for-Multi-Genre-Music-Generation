@@ -32,16 +32,15 @@ class MusicTransformer(nn.Module):
         self.genre_embed = nn.Embedding(NUM_GENRES, D_MODEL)
         self.pos_enc     = PositionalEncoding(D_MODEL)
 
-        decoder_layer = nn.TransformerDecoderLayer(
+        encoder_layer = nn.TransformerEncoderLayer(
             d_model=D_MODEL,
             nhead=N_HEADS,
             dim_feedforward=D_MODEL * 4,
             dropout=DROPOUT,
             batch_first=True,
         )
-        self.transformer = nn.TransformerDecoder(decoder_layer, num_layers=N_LAYERS)
+        self.transformer = nn.TransformerEncoder(encoder_layer, num_layers=N_LAYERS)
         self.output_proj = nn.Linear(D_MODEL, NUM_PITCHES)
-        self.sigmoid     = nn.Sigmoid()
         self._init_weights()
 
     def _init_weights(self):
@@ -67,11 +66,6 @@ class MusicTransformer(nn.Module):
         full_len    = x_proj.size(1)
         causal_mask = self.make_causal_mask(full_len, x.device)
 
-        out = self.transformer(
-            tgt=x_proj,
-            memory=x_proj,
-            tgt_mask=causal_mask,
-            memory_mask=causal_mask,
-        )
+        out = self.transformer(x_proj, mask=causal_mask)
         out = out[:, 1:, :]  # remove genre token
-        return self.sigmoid(self.output_proj(out))
+        return self.output_proj(out)  # raw logits; apply sigmoid only at inference

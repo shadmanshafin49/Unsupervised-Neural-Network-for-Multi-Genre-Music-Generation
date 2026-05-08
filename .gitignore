@@ -1,3 +1,29 @@
-# Large data files
-data/train_test_split/
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+
+# Model weights
+outputs/models/
+*.pth
+
+# Large data files (too large for GitHub — share via Kaggle/Drive)
 *.npy
+data/train_test_split/
+
+# Large data / curated outputs
+music_generation_outputs/
+music_generation_outputs.zip
+
+# Notebooks (generated from create_notebook.py; committed separately if needed)
+kaggle_train.ipynb
+
+# Misc
+notes.txt
+.DS_Store
+Thumbs.db
