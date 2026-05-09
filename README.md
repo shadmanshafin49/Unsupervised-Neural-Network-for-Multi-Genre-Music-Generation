@@ -189,15 +189,7 @@ All hyperparameters are centralised in [src/config.py](src/config.py):
 | Dropout | 0.1 |
 | Batch size | 32 |
 
----
-
-## Outputs and Generated MIDI Files
-
-Generated MIDI files for all models are available on Google Drive:  
-**[MIDI Files — Google Drive](YOUR_DRIVE_LINK_HERE)**  
-
----
-
+--- 
 ## Report
 
 The full project report (PDF) is available at:  
