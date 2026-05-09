@@ -201,7 +201,7 @@ Sections: Abstract · Introduction · Methodology · Result Analysis · Conclusi
 
 ## Presentation / Demo Video
 
-**[YouTube (Unlisted)](YOUR_YOUTUBE_LINK_HERE)**  
+**[YouTube (Unlisted)](https://youtu.be/bwBO76Lyys0)**  
 
 The video walkthrough covers: EDA → Preprocessing → Task 1 → Task 2 → Task 3 → Task 4 → Baseline comparison → Overall analysis.
 
