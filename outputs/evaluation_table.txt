@@ -13,6 +13,5 @@ Notes:
   Rhythm Div  : unique quantised durations / total notes  (higher = more variety)
   Repetition  : 1 - (unique 4-step piano-roll patterns / total patterns)  (lower = less repetitive)
   Pitch Sim   : distance vs training pitch-class histogram  (lower = closer to training distribution)
-  Human Score : NOT YET COLLECTED -- requires listening survey (1-5, >=10 participants)
   Task 2 note : KL divergence collapsed to ~0 (posterior collapse); all 21 VAE outputs are near-identical
   Task 2 note : Rhythm Div=0.089 and Repetition=0.000 reflect the collapsed decoder behaviour
