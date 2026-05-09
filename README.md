@@ -205,22 +205,6 @@ Sections: Abstract · Introduction · Methodology · Result Analysis · Conclusi
 
 The video walkthrough covers: EDA → Preprocessing → Task 1 → Task 2 → Task 3 → Task 4 → Baseline comparison → Overall analysis.
 
----
-
-## Individual Contributions
-
-**Taskia Maisha (ID: 22201433, Serial: 511)**
-- Preprocessing pipeline (`run_preprocessing.py`, `src/preprocessing/`)
-- Autoencoder model and training (`src/models/autoencoder.py`, `src/training/train_ae.py`)
-- Latent space sampling and MIDI export (`src/generation/sample_latent.py`, `src/generation/midi_export.py`)
-- Report writing: Methodology and Result Analysis sections
-
-**Shadman Sakib (ID: 21301566, Serial: 402)**
-- VAE and Transformer models (`src/models/vae.py`, `src/models/transformer.py`)
-- VAE and Transformer training and generation scripts
-- RLHF pipeline (`src/training/train_reward_model.py`, `src/training/train_rlhf.py`)
-- Evaluation framework (`src/evaluation/`, `run_evaluation.py`)
-- Report writing: Abstract, Introduction, and Conclusion sections
 
 ---
 
