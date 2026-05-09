@@ -195,7 +195,6 @@ All hyperparameters are centralised in [src/config.py](src/config.py):
 
 Generated MIDI files for all models are available on Google Drive:  
 **[MIDI Files — Google Drive](YOUR_DRIVE_LINK_HERE)**  
-*(Replace this link with the publicly accessible Drive folder before submission.)*
 
 ---
 
@@ -203,7 +202,6 @@ Generated MIDI files for all models are available on Google Drive:
 
 The full project report (PDF) is available at:  
 **[Project Report — Google Drive](https://drive.google.com/file/d/1Gs91QOcRcvph6dV38OODAM3vUzajRBAQ/view?usp=sharing)**  
-*(Replace this link with the publicly accessible PDF link before submission.)*
 
 Sections: Abstract · Introduction · Methodology · Result Analysis · Conclusion
 
@@ -212,7 +210,6 @@ Sections: Abstract · Introduction · Methodology · Result Analysis · Conclusi
 ## Presentation / Demo Video
 
 **[YouTube (Unlisted)](YOUR_YOUTUBE_LINK_HERE)**  
-*(Replace this link with the YouTube unlisted video link before submission.)*
 
 The video walkthrough covers: EDA → Preprocessing → Task 1 → Task 2 → Task 3 → Task 4 → Baseline comparison → Overall analysis.
 
