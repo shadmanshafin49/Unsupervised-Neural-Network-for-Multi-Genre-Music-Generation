@@ -1,0 +1,6 @@
+{
+  "ae_val_loss": 1.013,
+  "vae_val_loss": 1.020,
+  "transformer_val_ppl": 1.245,
+  "transformer_val_bce": 0.2193
+}
