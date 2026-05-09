@@ -1,0 +1,58 @@
+\begin{thebibliography}{}
+
+\bibitem[\protect\citeauthoryear{Bowman \bgroup et al\mbox.\egroup
+  }{2016}]{bowman2016vae_collapse}
+Bowman, S.~R.; Vilnis, L.; Vinyals, O.; Dai, A.~M.; J{\'o}zefowicz, R.; and
+  Bengio, S.
+\newblock 2016.
+\newblock Generating sentences from a continuous space.
+\newblock In {\em SIGNLL Conference on Computational Natural Language Learning
+  (CoNLL)},  10--21.
+
+\bibitem[\protect\citeauthoryear{Huang \bgroup et al\mbox.\egroup
+  }{2019}]{huang2019musictransformer}
+Huang, C.-Z.~A.; Vaswani, A.; Uszkoreit, J.; Simon, I.; Hawthorne, C.; Shazeer,
+  N.; Dai, A.~M.; Hoffman, M.~D.; Dinculescu, M.; and Eck, D.
+\newblock 2019.
+\newblock Music transformer: Generating music with long-term structure.
+\newblock In {\em International Conference on Learning Representations (ICLR)}.
+
+\bibitem[\protect\citeauthoryear{Raffel and Ellis}{2014}]{prettymidi}
+Raffel, C., and Ellis, D. P.~W.
+\newblock 2014.
+\newblock {pretty\_midi}: {MIDI} parsing and piano-roll extraction.
+
+\bibitem[\protect\citeauthoryear{Raffel}{2016}]{raffel2016lmd}
+Raffel, C.
+\newblock 2016.
+\newblock {\em Learning-Based Methods for Comparing Sequences, with
+  Applications to Audio-to-{MIDI} Alignment and Matching}.
+\newblock Ph.D. Dissertation, Columbia University.
+\newblock Introduces the Lakh {MIDI} Dataset (LMD).
+
+\bibitem[\protect\citeauthoryear{Roberts \bgroup et al\mbox.\egroup
+  }{2018}]{roberts2018musicvae}
+Roberts, A.; Engel, J.; Raffel, C.; Hawthorne, C.; and Eck, D.
+\newblock 2018.
+\newblock A hierarchical latent vector model for learning long-term structure
+  in music.
+\newblock In {\em International Conference on Machine Learning (ICML)},
+  volume~80 of {\em Proceedings of Machine Learning Research},  4364--4373.
+
+\bibitem[\protect\citeauthoryear{Vaswani \bgroup et al\mbox.\egroup
+  }{2017}]{vaswani2017attention}
+Vaswani, A.; Shazeer, N.; Parmar, N.; Uszkoreit, J.; Jones, L.; Gomez, A.~N.;
+  Kaiser, {\L}.; and Polosukhin, I.
+\newblock 2017.
+\newblock Attention is all you need.
+\newblock In {\em Advances in Neural Information Processing Systems (NeurIPS)},
+  volume~30.
+
+\bibitem[\protect\citeauthoryear{Williams}{1992}]{williams1992reinforce}
+Williams, R.~J.
+\newblock 1992.
+\newblock Simple statistical gradient-following algorithms for connectionist
+  reinforcement learning.
+\newblock {\em Machine Learning} 8(3--4):229--256.
+
+\end{thebibliography}
