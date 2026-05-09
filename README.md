@@ -202,7 +202,7 @@ Generated MIDI files for all models are available on Google Drive:
 ## Report
 
 The full project report (PDF) is available at:  
-**[Project Report — Google Drive](YOUR_REPORT_PDF_LINK_HERE)**  
+**[Project Report — Google Drive](https://drive.google.com/file/d/1Gs91QOcRcvph6dV38OODAM3vUzajRBAQ/view?usp=sharing)**  
 *(Replace this link with the publicly accessible PDF link before submission.)*
 
 Sections: Abstract · Introduction · Methodology · Result Analysis · Conclusion
